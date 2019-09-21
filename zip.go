@@ -145,7 +145,7 @@ func cloneZipItem(f *zip.File, dest string) error {
 		if nil == err {
 			fileName = string(data)
 		} else {
-			logger.Error(err)
+			//logger.Error(err)
 		}
 	}
 

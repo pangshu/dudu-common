@@ -125,7 +125,7 @@ func (*DuduTpl) Date(t time.Time, format string) string {
 }
 
 func (*DuduTpl) DateDayRand(t time.Time, format string) string {
-	unixTime := t.Unix() - RandInt64(1, 86400)
+	unixTime := t.Unix() - Rand.Int64(1,86400)
 	replacer := strings.NewReplacer(datePatterns...)
 	format = replacer.Replace(format)
 	tm := time.Unix(unixTime, 0)
