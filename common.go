@@ -10,7 +10,7 @@ type (
 	DuduGo byte
 	DuduLog byte
 	DuduTpl byte
-
+	DuduUrl byte
 	DuduNet byte
 	DuduOS byte
 	DuduPanic byte
@@ -35,4 +35,5 @@ var (
 	Str DuduStr
 	Tpl DuduTpl
 	Zip DuduZip
+	Url DuduUrl
 )
