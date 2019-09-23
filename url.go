@@ -26,7 +26,7 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 	domains := domainRules.FindString(hostName)
 
 	if len(domains) > 0 {
-		subDomain = strings.Replace(hostName, domains, "", -1)
+		subDomain = strings.Replace(hostName, "."+domains, "", -1)
 	}
 	return subDomain, domains, hostPort
 }
