@@ -118,6 +118,11 @@ func (*DuduRand) StringByStr(lenString int) string{
 	return string(result)
 }
 
+func (*DuduRand) IntAdd(min, max int) int {
+	return min + max
+}
+
+
 ////随机几位字符串
 //func (*DuduRand) GetRandomString(lenString int) string{
 //	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -130,3 +135,4 @@ func (*DuduRand) StringByStr(lenString int) string{
 //	}
 //	return string(result)
 //}
+
