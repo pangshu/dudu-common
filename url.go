@@ -1,7 +1,10 @@
 package common
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -34,4 +37,104 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 		}
 	}
 	return subDomain, domains, hostPort
+}
+
+//百度主动提交
+type BaiDuData struct {
+	Remain			int 		`json:"remain"`
+	Success			int 		`json:"success"`
+}
+func (*DuduUrl) PostBaiDu(dataType int, domain, token string, urls []string) (int,int) {
+	var tmpRes BaiDuData
+	//类型，0|百度PC，1|百度mip，2|百度熊掌号天级推送，3|百度熊掌号周级推送
+	apiUrl := ""
+	switch dataType {
+	case 0:
+		//百度PC推送
+		//{"remain":99999,"success":1}
+		apiUrl = "http://data.zz.baidu.com/urls?site=" + domain + "&token=" + token
+		break
+	case 1:
+		//百度Mip推送
+		//{"remain":99,"success":1,"success_mip":1,"remain_mip":99}
+		apiUrl = "http://data.zz.baidu.com/urls?site=" + domain + "&token=" + token + "&type=mip"
+		break
+	case 2:
+		//百度熊掌号推送
+		//{"remain":10,"success":0,"not_same_site":["http://www.zehoque.com/2.html"],"success_realtime":0,"remain_realtime":10}
+		apiUrl = "http://data.zz.baidu.com/urls?appid=" + domain + "&token=" + token + "&type=realtime"
+		break
+	case 3:
+		//百度熊掌号推送
+		//{"remain":5000000,"success":0,"not_same_site":["http://www.zehoque.com/2.html"],"success_batch":0,"remain_batch":5000000}
+		apiUrl = "http://data.zz.baidu.com/urls?appid=" + domain + "&token=" + token + "&type=batch"
+		break
+	default:
+		apiUrl = "http://data.zz.baidu.com/urls?site=" + domain + "&token=" + token
+		break
+	}
+	tmpUrl := ""
+	for k,v := range urls {
+		tmpUrl = v
+		if k != len(urls) - 1 {
+			tmpUrl = tmpUrl + "\n"
+		}
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", apiUrl, strings.NewReader(tmpUrl))
+	if err != nil {
+		return 0, 0
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, 0
+	}
+
+	err = json.Unmarshal(body, &tmpRes)
+	if err != nil {
+		return 0, 0
+	}
+
+	return tmpRes.Remain, tmpRes.Success
+}
+
+//百度主动提交
+type SmData struct {
+	ReturnCode		int 		`json:"returnCode"`
+}
+func (*DuduUrl) PostSm(userName, domain, token string, urls []string) int {
+	var tmpRes SmData
+	apiUrl := "http://data.zhanzhang.sm.cn/push?site=" + domain + "&user_name=" + userName + "&resource_name=mip_add&token=" + token
+
+	tmpUrl := ""
+	for k,v := range urls {
+		tmpUrl = v
+		if k != len(urls) - 1 {
+			tmpUrl = tmpUrl + "\n"
+		}
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", apiUrl, strings.NewReader(tmpUrl))
+	if err != nil {
+		return 0
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0
+	}
+
+	err = json.Unmarshal(body, &tmpRes)
+	if err != nil {
+		return 0
+	}
+
+	return tmpRes.ReturnCode
 }
