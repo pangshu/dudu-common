@@ -39,6 +39,18 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 	return subDomain, domains, hostPort
 }
 
+//百度ping提交
+func (*DuduUrl) GetBaiDu(domain string, urls []string) bool {
+	for _,v := range urls {
+		apiUrl := "http://api.share.baidu.com/s.gif?r=" + domain + "&l=" + v
+		req,_ := http.NewRequest("GET",apiUrl,nil)
+		client := http.Client{}
+		_, _ = client.Do(req)
+	}
+
+	return true
+}
+
 //百度主动提交
 type BaiDuData struct {
 	Remain			int 		`json:"remain"`
