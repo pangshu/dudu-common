@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -38,7 +39,42 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 	}
 	return subDomain, domains, hostPort
 }
+// 通过正则分离域名，提取二级域名，主域名，端口号
+func (*DuduUrl) GetDomainByRegexp(url string, domainList []string) (string, string, string) {
+	var hostName string
+	var hostPort string
+	var subDomain string
 
+	if len(domainList) < 1 {
+		return "","",""
+	}
+	// 正则提取主域名
+	regexpStr := "((" + strings.Join(domainList,"|") + ")(/|:|$))"
+	domainRegexp,err := regexp.Compile(regexpStr)
+	if err != nil {
+		fmt.Println(err)
+		return "", "", ""
+	}
+	domainRes := domainRegexp.FindStringSubmatch(url)
+	if len(domainRes) != 4 {
+		return "", "", ""
+	} else {
+		hostName = domainRes[2]
+		domainStartNum := domainRegexp.FindStringIndex(url)
+		if len(domainStartNum) > 0 && domainStartNum[0] >= 1{
+			// 提取子域名
+			subDomain = url[0:domainStartNum[0]-1]
+		}
+	}
+
+	portRegexp,_ := regexp.Compile(":([0-9]+)")
+	portArr := portRegexp.FindStringSubmatch(url)
+	if len(portArr) >= 2 {
+		hostPort = portArr[1]
+	}
+
+	return subDomain, hostName, hostPort
+}
 //百度ping提交
 func (*DuduUrl) GetBaiDu(domain string, urls []string) bool {
 	for _,v := range urls {
