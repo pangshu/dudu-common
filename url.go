@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -26,7 +27,7 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 		hostPort = ""
 	}
 
-	domainRules,_ := regexp.Compile("[\\w][\\w-]*\\.(?:com\\.cn|com|cn|co|net\\.cn|net|org|gov|cc|biz|info|me|xyz|im|io|name|tw|mobi|asia|hk|areo|ca|us|fr|se|ie|tv|ws)(\\/|$)")
+	domainRules,_ := regexp.Compile("[\\w][\\w-]*\\.(?:com\\.cn|net\\.cn|com|cn|co|net|org|gov|cc|biz|info|me|xyz|im|io|name|tw|mobi|asia|hk|areo|ca|us|fr|se|ie|tv|ws|icu|top)(\\/|$)")
 	domains := domainRules.FindString(hostName)
 
 	if len(domains) > 0 {
@@ -40,24 +41,24 @@ func (*DuduUrl) GetDomain(url string) (string,string,string) {
 	return subDomain, domains, hostPort
 }
 // 通过正则分离域名，提取二级域名，主域名，端口号
-func (*DuduUrl) GetDomainByRegexp(url string, domainList []string) (string, string, string) {
+func (*DuduUrl) GetDomainByRegexp(url string, domainList []string) (string, string, string, error) {
 	var hostName string
 	var hostPort string
 	var subDomain string
 
 	if len(domainList) < 1 {
-		return "","",""
+		return "","","", errors.New("域名列表为空！")
 	}
 	// 正则提取主域名
 	regexpStr := "((" + strings.Join(domainList,"|") + ")(/|:|$))"
 	domainRegexp,err := regexp.Compile(regexpStr)
 	if err != nil {
 		fmt.Println(err)
-		return "", "", ""
+		return "", "", "", err
 	}
 	domainRes := domainRegexp.FindStringSubmatch(url)
 	if len(domainRes) != 4 {
-		return "", "", ""
+		return "", "", "", errors.New("找不到域名！")
 	} else {
 		hostName = domainRes[2]
 		domainStartNum := domainRegexp.FindStringIndex(url)
@@ -73,7 +74,7 @@ func (*DuduUrl) GetDomainByRegexp(url string, domainList []string) (string, stri
 		hostPort = portArr[1]
 	}
 
-	return subDomain, hostName, hostPort
+	return subDomain, hostName, hostPort, nil
 }
 //百度ping提交
 func (*DuduUrl) GetBaiDu(domain string, urls []string) bool {
